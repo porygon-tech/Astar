@@ -1,2 +1,2 @@
 # Astar
-A* algorithm
+A* algorithm.
