@@ -5,7 +5,7 @@
 #include "lib_Astar.h"
 
 
-//gcc csvreader.c -o csvread -lm && time ./csvread preprocessing/parsedfiles/nodes_clean.csv
+//gcc csvreader.c -o csvread -lm && time ./csvread preprocessing/parsedfiles/nodes_clean.csv preprocessing/parsedfiles/ways_clean.csv
 
 int main(int argc, char *argv[]){
 	unsigned long n_nodes = 23895681UL;
@@ -14,8 +14,10 @@ int main(int argc, char *argv[]){
 	size_t field_bytes = 184;
 
 
-	char *filename = argv[1];
+	char *filename_nodes = argv[1];
+	char *filename_ways = argv[2];
 	char *line_buff, *field;
+	FILE *fp;
 
 	int lc = 0;
 	
@@ -34,29 +36,27 @@ int main(int argc, char *argv[]){
 	nodes = (nodetype *)malloc(sizeof(nodetype) * n_nodes);
 
 
-
-
-
-
 /*
-	int *n_nodes = system("cat cataluna.csv | grep ^node | wc -l");
-	int *n_ways  = system("cat cataluna.csv | grep ^way  | wc -l");
+	cat cataluna.csv | grep ^node | wc -l
+	cat cataluna.csv | grep ^way  | wc -l
 */
 
-	FILE *fp = fopen(filename, "r");
-	//FILE *fp = fopen("preprocessing/parsedfiles/nodes.csv", "r");
+
+//====== LOAD NODES ==============================================================
+
+	fp = fopen(filename_nodes, "r");
 	if (!fp){
-		fprintf(stderr, "Error opening file '%s'\n", filename);
+		fprintf(stderr, "Error opening file '%s'\n", filename_nodes);
 		return EXIT_FAILURE;
 	}
 
-
 	while (( line_chars = getline(&line_buff, &line_bytes, fp)) != -1) {
 		lc++;
-		printf("line[%06d]: chars=%06zd, buf size=%06zu, contents: %s", lc, line_chars, line_bytes, line_buff);
+
+		//printf("line[%06d]: chars=%06zd, buf size=%06zu, contents: %s", lc, line_chars, line_bytes, line_buff);
 		field = strsep(&line_buff, "|");
 			nodes[lc-1].id = strtoul(field, NULL, 10);
-			//puts(field);
+
 
 		field = strsep(&line_buff, "|");
 			nodes[lc-1].name = (char *) malloc(sizeof(char) * (strlen(field) + 1));
@@ -65,10 +65,45 @@ int main(int argc, char *argv[]){
 		field = strsep(&line_buff, "|");
 			nodes[lc-1].lat = atof(field);
 
+
 		field = strsep(&line_buff, "|");
 			nodes[lc-1].lon = atof(field);
 
+
+		if (lc % 100 == 0){
+			printf("loaded %d nodes.\r", lc);
+		}
+
+	}
+	fclose(fp);
+	printf("loaded %d nodes.\n", lc);
+
+
+
+//====== LOAD WAYS ==============================================================
+
+	fp = fopen(filename_ways, "r");
+	if (!fp){
+		fprintf(stderr, "Error opening file '%s'\n", filename_ways);
+		return EXIT_FAILURE;
 	}
 
+	while (( line_chars = getline(&line_buff, &line_bytes, fp)) != -1) {
+		lc++;
+
+		//printf("line[%06d]: chars=%06zd, buf size=%06zu, contents: %s", lc, line_chars, line_bytes, line_buff);
+		field = strsep(&line_buff, "|");
+
+
+
+		if (lc % 1000 == 0){
+			printf("loaded %d ways.\r", lc);
+		}
+
+	}
 	fclose(fp);
+	printf("loaded %d ways.\n", lc);
+	
+
+
 }
