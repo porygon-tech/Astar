@@ -7,7 +7,7 @@ const int R = 6371;
 const float DEG_TO_RAD = (3.1415926536 / 180);
 
 typedef struct {
-	unsigned long id; 		// Node identifier (accessed with node.id)
+	unsigned long id; 		// Node identifier(accessed with node.id)
 	char *name;
 	double lat, lon;		// Node position (accessed with node.lat, node.lon)
 	unsigned short nsucc;	// Number of node successors; i. e. length of successors
@@ -31,17 +31,26 @@ float haversine(float a_LAT,float a_LON,float b_LAT,float b_LON){
 }
 
 unsigned long binSearchNode (unsigned long id_s, nodetype *nodes, unsigned long listlength) {
-	register unsigned long half, id, iStart = 0UL, iEnd = listlength;
+	register unsigned long id, iStart = 0UL, half, iEnd = listlength;
 	while (iStart < iEnd) {
-		half = round(0.5 * (iEnd - iStart));
+		//half = iStart + ((iEnd - iStart - 1)>>1);
+		half = iStart + round(0.5 * (iEnd - iStart - 1));
 		id = nodes[half].id;
+
+		//printf("looking for %lu at %lu, (%lu, %lu): Found %lu\n", id_s, half, iStart, iEnd, id);
+		
 		if (id > id_s) {
-			iStart = half;
-		} else if (id < id_s) {
 			iEnd = half;
+			//puts("vvv");
+		} else if (id < id_s) {
+			iStart = half + 1;
+			//puts("^^^");
 		} else {
+			//printf("FOUND %lu at %lu \n\n\n", id_s, half);
 			return(half);
+
 		}
 	}
+	//printf("COULD NOT FIND %lu\n\n\n", id_s);
 	return(ULONG_MAX);
 }
