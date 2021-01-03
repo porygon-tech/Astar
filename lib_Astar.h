@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>	
+#include <limits.h>
 
 const int R = 6371;
 const float DEG_TO_RAD = (3.1415926536 / 180);
 
 typedef struct {
-	unsigned long id; 		// Node identificator (accessed with node.id)
+	unsigned long id; 		// Node identifier (accessed with node.id)
 	char *name;
 	double lat, lon;		// Node position (accessed with node.lat, node.lon)
 	unsigned short nsucc;	// Number of node successors; i. e. length of successors
@@ -29,3 +30,18 @@ float haversine(float a_LAT,float a_LON,float b_LAT,float b_LON){
 	return asin(sqrt(dx * dx + dy * dy + dz * dz) *0.5) * 2 * R;
 }
 
+unsigned long binSearchNode (unsigned long id_s, nodetype *nodes, unsigned long listlength) {
+	register unsigned long half, id, iStart = 0UL, iEnd = listlength;
+	while (iStart < iEnd) {
+		half = round(0.5 * (iEnd - iStart));
+		id = nodes[half].id;
+		if (id > id_s) {
+			iStart = half;
+		} else if (id < id_s) {
+			iEnd = half;
+		} else {
+			return(half);
+		}
+	}
+	return(ULONG_MAX);
+}
