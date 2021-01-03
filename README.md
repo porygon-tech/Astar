@@ -1,5 +1,5 @@
 # Astar
-A* algorithm.
+A* algorithm implementation.
 ## Manual
 ### Preprocessing
 
