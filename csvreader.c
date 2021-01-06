@@ -8,7 +8,7 @@
 
 
 //DEBUGGING:  gcc csvreader.c -o csvread -lm -fsanitize=address -static-libasan -g -Wall && time ./csvread preprocessing/parsedfiles/nodes_clean.csv preprocessing/parsedfiles/ways_clean.csv bin_out.bin
-//gcc csvreader.c -o csvread -O3 -lm time ./csvread preprocessing/parsedfiles/nodes_clean.csv preprocessing/parsedfiles/ways_clean.csv bin_out.bin
+//gcc csvreader.c -o csvread -O3 -lm && ./csvread preprocessing/parsedfiles/nodes_clean.csv preprocessing/parsedfiles/ways_clean.csv bin_out.bin
 
 int main(int argc, char *argv[]){
 	unsigned long n_nodes = 3472620UL; //change: cataluna 3472620; spain 23895681
@@ -159,7 +159,10 @@ int main(int argc, char *argv[]){
 	fclose(fp);
 	printf("loaded %d ways.\n\n", lc);
 	
-
+/* HAVERSINE WORKING EXAMPLE
+double d = haversine(240949599, 30558454, nodes, n_nodes);
+	printf("dist: %.1f km (%.1f mi.)\n", d, d / 1.609344);
+*/
 
 //====== WRITE BINARY FILE ==============================================================
 
