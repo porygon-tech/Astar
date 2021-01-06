@@ -1,20 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include <stdbool.h>
-#include <limits.h>	
+#include <math.h>	
+#include <limits.h>
 
 const int R = 6371;
 const float DEG_TO_RAD = (3.1415926536 / 180);
 
-
-// Exit Error
-void ExitError( const char *miss, int errcode) {
-     fprintf (stderr, " \nERROR: %s. \nStopping... \n\n", miss); exit(errcode);
-}
-
-// Structure to represent the nodes
 typedef struct {
 	unsigned long id; 		// Node identifier(accessed with node.id)
 	char *name;
@@ -23,6 +14,10 @@ typedef struct {
 	unsigned long *successors;
 } nodetype;
 
+
+void ExitError( const char *miss, int errcode) {
+     fprintf (stderr, " \nERROR: %s. \nStopping... \n\n", miss); exit(errcode);
+}
 
 float haversine(float a_LAT,float a_LON,float b_LAT,float b_LON){
 	/*Haversine distance calculator
