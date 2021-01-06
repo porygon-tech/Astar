@@ -1,14 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>	
-#include <string.h>
-#include <stdbool.h>
-#include <limits.h>
 #include "lib_Astar.h"
 
 
 //gcc csvreader.c -o csvread -Ofast -lm && time ./csvread preprocessing/parsedfiles/nodes_clean.csv preprocessing/parsedfiles/ways_clean.csv
-//DEBUGGING:  gcc csvreader.c -o csvread -lm -fsanitize=address -static-libasan -g -Wall && time ./csvread preprocessing/parsedfiles/nodes_clean.csv preprocessing/parsedfiles/ways_clean.csv bin_out
+//DEBUGGING:  gcc csvreader.c -o csvread -lm -fsanitize=address -static-libasan -g -Wall && time ./csvread preprocessing/parsedfiles/nodes_clean.csv preprocessing/parsedfiles/ways_clean.csv
 
 int main(int argc, char *argv[]){
 	unsigned long n_nodes = 3472620UL; //change: cataluna 3472620; spain 23895681
@@ -23,7 +17,6 @@ int main(int argc, char *argv[]){
 
 	char *filename_nodes = argv[1];
 	char *filename_ways = argv[2];
-	char *filename_bin = argv[2];
 	char *line_buff, *field, *linec;
 
 	nodetype *nodes;
@@ -92,9 +85,7 @@ int main(int argc, char *argv[]){
 			nodes[lc-1].lon = strtod(field, NULL);
 
 
-		if (lc % 100 == 0){
-			printf("loaded %d nodes.\r", lc);
-		}
+		if (lc % 100 == 0) printf("loaded %d nodes.\r", lc); 
 
 	}
 	fclose(fp);
@@ -122,38 +113,33 @@ int main(int argc, char *argv[]){
 		//printf("%p \n",(void*)&fp);
 
 		field = strsep(&linec, "|");
-		field = strsep(&linec, "|");
-			if (strlen(field)) {oneway = true;} else {oneway = false;}
+		if (strlen(field)) {oneway = true;} else {oneway = false;}
 
 		while( (field = strsep(&linec, "|")) != NULL) {
-			waynode_id = strtoul(field, NULL, 10);
-			len_way = 0;
-			if (binSearchNode(waynode_id, nodes, n_nodes) != ULONG_MAX) {
-					way_nodes[len_way] = waynode_id;
-					len_way++;
-			}
-		}
+		     waynode_id = strtoul(field, NULL, 10);
+		     len_way = 0;
+		     if (binSearchNode(waynode_id, nodes, n_nodes) != ULONG_MAX) {
+			 way_nodes[len_way] = waynode_id;
+			 len_way++;
+		     }
+	        }
 
 		if (len_way > 1) {
-			for (int i = 0; i < len_way - 1; ++i) {
-				A_id = binSearchNode(way_nodes[i],   nodes, n_nodes);	// current node's index in nodelist
-				B_id = binSearchNode(way_nodes[i+1], nodes, n_nodes);	//    next node's index in nodelist
+		   for (int i = 0; i < len_way - 1; ++i) {
+		       A_id = binSearchNode(way_nodes[i],   nodes, n_nodes);	// current node's index in nodelist
+		       B_id = binSearchNode(way_nodes[i+1], nodes, n_nodes);	// next node's index in nodelist
 
+		       nodes[A_id].successors[nodes[A_id].nsucc] = B_id;
+		       nodes[A_id].nsucc++;
 
-					nodes[A_id].successors[nodes[A_id].nsucc] = B_id;
-					nodes[A_id].nsucc++;
-
-				if (!oneway) {
-
-					nodes[B_id].successors[nodes[B_id].nsucc] = A_id;
-					nodes[B_id].nsucc++;
-				}
-			}
+		       if (!oneway) {
+			  nodes[B_id].successors[nodes[B_id].nsucc] = A_id;
+			  nodes[B_id].nsucc++;
+		       }
+		   }
 		}	
 
-		if (lc % 100 == 0) {
-			printf("loaded %d ways.\r", lc);
-		}
+		if (lc % 100 == 0) printf("loaded %d ways.\r", lc);
 
 	}
 	fclose(fp);
@@ -163,33 +149,33 @@ int main(int argc, char *argv[]){
 
 //====== WRITE BINARY FILE ==============================================================
 
-/*
-	void ExitError( const char *miss, int errcode) {
-		fprintf (stderr, " \nERROR: %s. \nStopping... \n\n", miss); exit(errcode);
-	}
-
 	FILE *fin;
 	
 	// Computing the total number of successors
 	unsigned long ntotnsucc=0UL;
+	for(int i=0; i<n_nodes; i++) ntotnsucc += nodes[i].nsucc;
+	
 	// Setting the name of the binary file
-	strcpy(strrchr(filename_bin, '.' ), ". bin");
+	// strcpy(strrchr(filename_bin, '.' ), ".bin");
 
-	if ((fin = fopen (filename_bin, "wb")) == NULL)
+	if ((fin = fopen ("binary_file.bin", "wb")) == NULL)
 		ExitError("the output binary data file cannot be opened", 31);
+		
 	// Global data −−− header
 	if( fwrite(&n_nodes, sizeof(unsigned long), 1, fin) + fwrite(&ntotnsucc, sizeof(unsigned long), 1, fin) != 2 )
 		ExitError("when initializing the output binary data file", 32);
+		
 	// Writing all nodes
 	if( fwrite(nodes, sizeof(nodetype), n_nodes, fin) != n_nodes )
 		ExitError("when writing nodes to the output binary data file", 32);
+		
 	// Writing sucessors in blocks
 	for(int i=0; i < n_nodes; i++) if(nodes[i].nsucc) {
-		if( fwrite(nodes[i]. successors, sizeof(unsigned long), nodes[i].nsucc, fin) != nodes[i].nsucc )
+		if( fwrite(nodes[i].successors, sizeof(unsigned long), nodes[i].nsucc, fin) != nodes[i].nsucc )
 		ExitError("when writing edges to the output binary data file", 32);
 	}
 	fclose(fin);
-*/
+
 	free(line_buff);
 	free(field);
 	free(nodes);
