@@ -19,21 +19,6 @@ void ExitError( const char *miss, int errcode) {
      fprintf (stderr, " \nERROR: %s. \nStopping... \n\n", miss); exit(errcode);
 }
 
-float haversine(float a_LAT,float a_LON,float b_LAT,float b_LON){
-	/*Haversine distance calculator
-	IN: two points a,b on earth surface in form of their coordinate values (a_LAT, a_LON, b_LAT, b_LON)
-	OUT: haversine distance */
-
-	double dx, dy, dz;
-	a_LAT *= DEG_TO_RAD, a_LON *= DEG_TO_RAD, b_LAT *= DEG_TO_RAD, b_LON *= DEG_TO_RAD, 
- 	
-	dz = sin(a_LAT) - sin(b_LAT);
-	dx = cos(a_LAT) * sin(a_LON) - cos(b_LAT) * sin(b_LON);
-	dy = cos(a_LAT) * cos(a_LON) - cos(b_LAT) * cos(b_LON);
-
-	return asin(sqrt(dx * dx + dy * dy + dz * dz) *0.5) * 2 * R;
-}
-
 unsigned long binSearchNode (unsigned long id_s, nodetype *nodes, unsigned long listlength) {
 	register unsigned long id, iStart = 0UL, half, iEnd = listlength;
 	while (iStart < iEnd) {
@@ -57,4 +42,29 @@ unsigned long binSearchNode (unsigned long id_s, nodetype *nodes, unsigned long 
 	}
 	//printf("COULD NOT FIND %lu\n\n\n", id_s);
 	return(ULONG_MAX);
+}
+
+
+float haversine(unsigned long a_id, unsigned long b_id, nodetype *nodelist, unsigned long n_nodes){
+	/*Haversine distance calculator
+	IN: two points a,b on earth surface in form of their coordinate values (a_LAT, a_LON, b_LAT, b_LON)
+	OUT: haversine distance */
+
+	nodetype a = nodelist[binSearchNode(a_id, nodelist, n_nodes)];
+	nodetype b = nodelist[binSearchNode(b_id, nodelist, n_nodes)];
+
+	float a_LAT = a.lat;
+	float a_LON = a.lon;
+	float b_LAT = b.lat;
+	float b_LON = b.lon;
+
+
+	double dx, dy, dz;
+	a_LAT *= DEG_TO_RAD, a_LON *= DEG_TO_RAD, b_LAT *= DEG_TO_RAD, b_LON *= DEG_TO_RAD, 
+ 	
+	dz = sin(a_LAT) - sin(b_LAT);
+	dx = cos(a_LAT) * sin(a_LON) - cos(b_LAT) * sin(b_LON);
+	dy = cos(a_LAT) * cos(a_LON) - cos(b_LAT) * cos(b_LON);
+
+	return asin(sqrt(dx * dx + dy * dy + dz * dz) *0.5) * 2 * R;
 }
