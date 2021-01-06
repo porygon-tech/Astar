@@ -1,5 +1,7 @@
 #include "lib_Astar.h"
 
+//gcc readbin.c -o readbin -Ofast -lm && time ./readbin binary_file.bin
+
 int main (int argc, char *argv[]){
    FILE *fin;
    unsigned long n_nodes;
