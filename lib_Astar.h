@@ -81,16 +81,71 @@ typedef struct {
    Queue whq;              
 } AStarStatus;
 
-typedef struct open_node{
+typedef struct dynamic_node {
    double f;                
    unsigned long index;     
-   struct open_node* next;  
+   struct dynamic_node *next;  
 } open_node;
 
+void insert_info (open_node **n, double f, unsigned long index){
+    open_node *nnew;
+    nnew = malloc(sizeof(open_node));
+    
+    nnew -> f = f;
+    nnew -> index = index;
+    nnew -> next = *n;
+    *n = nnew;
+}
 
-//====== Astar function ==============================================================
+unsigned long min_index (open_node *n){
+   open_node *ACTUAL = n;
+   if(ACTUAL == NULL) return ULONG_MAX;
+   open_node *MINI = NULL;
+   double num_min = 999999999999;
+   
+   while(ACTUAL != NULL) {
+      if(ACTUAL -> f < num_min) {
+         MINI = ACTUAL;
+         num_min = ACTUAL -> f;
+      }
+      
+      ACTUAL = ACTUAL -> next;
+   }
+   return MINI -> index;
+}
 
-void Astar_alg (unsigned long node_start, unsigned long node_goal, nodetype *nodes, unsigned long n_nodes) {
+
+// iter index
+int iter_by_index (open_node **n, unsigned long index) {
+   open_node *ACTUAL = *n;
+   if (ACTUAL == NULL) return -1;
+   
+   open_node *TEMPORARY = NULL;
+   if (index == ACTUAL -> index){
+      open_node *COPY = NULL;
+         
+      COPY = (*n) -> next;
+      free(*n); 
+      *n = COPY;
+      return 1;
+   }
+      
+   while (ACTUAL -> next -> index != index) {
+      ACTUAL = ACTUAL -> next;
+      if (ACTUAL == NULL) return -1;
+   }
+   
+   TEMPORARY = ACTUAL -> next;
+   ACTUAL -> next = TEMPORARY -> next;
+   free(TEMPORARY);
+   return 1;
+}
+
+//====== AStar function ==============================================================
+
+void AStar_alg (unsigned long node_start, unsigned long node_goal, nodetype *nodes, unsigned long n_nodes)
+{
+   
    
    // Search the index of the nodes
     unsigned long start_index = binSearchNode(node_start, nodes, n_nodes);
@@ -101,166 +156,102 @@ void Astar_alg (unsigned long node_start, unsigned long node_goal, nodetype *nod
     printf("and the goal node is: id %lu with lat %.4f and long %.4f.\n", nodes[goal_index].id, nodes[goal_index].lat, nodes[goal_index].lon);
     
    // Initialize the status
-    AStarStatus* status = NULL;
-    
-    
-    if ((status = (AStarStatus*) malloc(n_nodes*sizeof(AStarStatus))) == NULL)
-       ExitError("when allocate memory for the status", 21);
-    
-    
-    unsigned long i;
-   // Store for all nodes queue NONE and g to infinity
+    AStarStatus *status = NULL;
+    status = (AStarStatus *) malloc(n_nodes*sizeof(AStarStatus));
    
-    for(i=0; i<n_nodes; i++){
-       status[i].whq = 0;
-       status[i].g = INFINITY;
-    }
-   
-   /* Initialization of node_start:
+   /*Initialization of node_start:
       dijkstra distance g() = 0
       heuristic distance h() = haversine
-      and OPEN (1) queue*/
+      and queue 1 */
    
     status[start_index].g = 0;
     status[start_index].h = haversine(node_start, node_goal, nodes, n_nodes);
     status[start_index].whq = 1; //OPEN
    
-   
-    printf("Dijkstra distance from the start node is %.4f and the heuristic distance is %.4f km", status[start_index].g, status[start_index].h);
+    printf("Dijkstra distance from the start node is %.4f and the heuristic distance is %.4f km.\n", status[start_index].g, status[start_index].h); // to check
    
    // Initialize OPEN list
-    struct open_node* OPEN = NULL;
-   /*
-    if ((OPEN = (open_node*) malloc(sizeof(open_node))) == NULL)
-    ExitError("when allocate memory for the OPEN list", 24);
-   */
-    OPEN -> index = start_index;
-    OPEN -> f = status[start_index].g + status[start_index].h;
-    OPEN -> next = NULL;
-    
-    
+    open_node *OPEN_LIST = NULL;
+    insert_info(&OPEN_LIST, status[start_index].g + status[start_index].h, start_index); //g=0; g+h=h
+  
+   // Vars to the AStar
     unsigned long current_index;   // node_current index
     double successor_current_cost; // cost of the successors
-    unsigned long successor_index; // node_successor index
-    int count_exp = 0;
-    unsigned long expanded;
+    int count_exp = 0; //counter to know the number of nodes expanded
     double w;
-  
+    int i;
     
-    while (OPEN != NULL) {
-      current_index = OPEN -> index;
+    while ((current_index = min_index(OPEN_LIST)) != ULONG_MAX) {
+     // current_index = OPEN_LIST -> index;
       count_exp += 1;
+      printf("Number of expanded nodes: %d.\n", count_exp); // to check
+      printf("Current index: %ld.\n", current_index);       // to check
       
      //  If node is the goal node break;
       if (current_index == goal_index) break;
       
      // Generate each state of the successors that come after the current node
-      for (expanded = 0; expanded < nodes[current_index].nsucc; expanded++){
+      for (i = 0; i < nodes[current_index].nsucc; i++){
       
         // Set the cost of the current successor 
-         successor_index = (nodes[current_index].successors)[expanded];
-         w = haversine(nodes[current_index].id, node_goal, nodes, n_nodes);
+         unsigned long successor_index = nodes[current_index].successors[i];
+         w = haversine(nodes[current_index].id, nodes[goal_index].id, nodes, n_nodes);
          successor_current_cost = status[current_index].g + w;
          
-        // If node successor is in the OPEN list
+        // If node successor is OPEN
          if (status[successor_index].whq == 1){
              if (status[successor_index].g <= successor_current_cost) continue;
-             else {
-                open_node* TEMPORARY = OPEN;
-                open_node* PREVIOUS = NULL;
-               
-                while((TEMPORARY != NULL) && (TEMPORARY -> index != successor_index)){
-                   PREVIOUS = TEMPORARY;
-                   TEMPORARY = TEMPORARY -> next;
-                }
-               
-                PREVIOUS -> next = TEMPORARY -> next;
-                free(TEMPORARY);
-             }
-        // If node successor is in the CLOSE list  
-         } else if (status[successor_index].whq == 2 ) continue;
+             
+        // If node successor is CLOSED
+         } else if (status[successor_index].whq == 2 ){
+         
+               // And is equal or lower than the successor current cos continue
+                if (status[successor_index].g <= successor_current_cost) continue;
+                
+               // If not (if is greather) move node_successor from CLOSED lo OPEN
+                status[successor_index].whq = 1;
+                insert_info(&OPEN_LIST, (successor_current_cost+status[successor_index].h), successor_index);
       
-         else status[successor_index].h = haversine(nodes[successor_index].id, node_goal, nodes, n_nodes);
-      
+         } else {
+            status[successor_index].h = haversine(nodes[successor_index].id, nodes[goal_index].id, nodes, n_nodes);
+            status[successor_index].whq = 1;
+            insert_info(&OPEN_LIST, (successor_current_cost + status[successor_index].h), successor_index);           
+         }
+         
          status[successor_index].g = successor_current_cost;
          status[successor_index].parent = current_index;
-      
-         (status + successor_index) -> whq = 1; //OPEN
-         open_node* TEMPORARY = OPEN;
-         open_node* new = NULL;
-         
-         if ((new = (open_node*) malloc(sizeof(open_node))) == NULL)
-            ExitError("when allocate memory for a new node in the OPEN list", 23);
-            
-         new -> index = successor_index;
-         new -> f = status[successor_index].g + status[successor_index].h;
-         new -> next = NULL;
-         
-         while ((TEMPORARY -> next != NULL) && ((TEMPORARY -> next) -> f)){
-            TEMPORARY = TEMPORARY -> next;
-         }
-         
-         if ((TEMPORARY -> next) -> f > new -> f){
-            new -> next = TEMPORARY -> next;
-            TEMPORARY -> next = new;
-         }
-      
       }
       
-      status[current_index].whq = 2; //CLOSE
-      
-      struct open_node* COPY = NULL;
-      COPY = OPEN -> next; 
-      free(OPEN);
-      OPEN = COPY;  
+      status[current_index].whq = 2;
+ 
+    // iter_by_index
+    //  if ((iter_by_index(&OPEN_LIST, current_index)) != 1) printf("Delete fail.\n");
      
     }
     
-    if (OPEN == NULL) ExitError("OPEN list is empty", 24);
+    if (current_index != goal_index) ExitError("OPEN list is empty", 24);
     
+    // And we write
+    unsigned long *path;
+    unsigned long neigh;
     
+    neigh = current_index;
+    path = (unsigned long *) malloc(n_nodes*sizeof(unsigned long));
+    path[0] = neigh;
     
-    struct open_node* COPY = NULL;
-    while (OPEN != NULL){
-       COPY = OPEN -> next; 
-       free(OPEN);
-       OPEN = COPY; 
+    int nn;
+    while (neigh != start_index){
+       nn++;
+       neigh = status[neigh].parent;
+       path[nn] = neigh;
     }
     
-   // We count the number of nodes 
-    current_index = goal_index;
-    unsigned long length_path = 0;
-    while(current_index != start_index){
-       length_path += 1;
-       current_index = status[current_index].parent;
-    }
+    int length_path = nn+1;
     
-   // We store the path 
-    unsigned long *path = NULL;
-    if ((path = (unsigned long*) malloc(length_path*sizeof(unsigned long))) == NULL)
-       ExitError("when allocate memory for the path", 25);
-       
-    path += length_path -1;
-    current_index = goal_index;
+    printf("Node id | Latitud | Longitud\n");
     
-    while (current_index != start_index){
-       *path = current_index;
-       current_index = status[current_index].parent;
-       path -=1;
-    }
-    
-    if (current_index == goal_index) *path = current_index;
-    
-    // And we write it into a csv (FALTA)
-    
-     
-    printf("The solution length is %.4f km.\n", status[goal_index].g);
-    printf("The number of expanded nodes is: %u.\n", count_exp);
-    
-    free(path); 
-    free(status);
-    
-   
+    for (int i=0; i<=length_path; i++) printf("%lu | %.4f | %.4f \n", nodes[path[i]].id, nodes[path[i]].lat, nodes[path[i]].lon);
+ 
     
 } 
 

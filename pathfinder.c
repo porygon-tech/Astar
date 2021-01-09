@@ -41,8 +41,7 @@ int main (int argc, char *argv[]){
 	fclose(fin);
 	
 	//Setting pointers to successors
-	unsigned long i;
-	for(i=0; i<n_nodes; i++) if(nodes[i].nsucc) {
+	for(int i=0; i<n_nodes; i++) if(nodes[i].nsucc) {
 		nodes[i].successors = allsuccessors; 
 		allsuccessors += nodes[i].nsucc;
 	}
@@ -58,24 +57,51 @@ int main (int argc, char *argv[]){
         unsigned long node_goal; 
         
         printf("Enter the ID of the starting node (ex. Santa Maria del Mar: 240949599): ");
-        if(scanf("%lu", &node_start) != 1) ExitError("when reading the starting node", 19);
+        if(scanf("%lu", &node_start) != 1) ExitError("Invalid start node", 19);
         
         printf("Enter the ID of the goal node (ex. Giralda: 195977239, cat: 30558454): ");
-        if(scanf("%lu", &node_goal) != 1) ExitError("when reading the goal node", 20);
+        if(scanf("%lu", &node_goal) != 1) ExitError("Invalid goal node", 20);
         
-        Astar_alg (node_start, node_goal, nodes, n_nodes);
-        
+        AStar_alg (240949599, 30558454, nodes, n_nodes);
         /*
+        // Search the index of the nodes
+         unsigned long start_index = binSearchNode(node_start, nodes, n_nodes);
+         unsigned long goal_index = binSearchNode(node_goal, nodes, n_nodes);
+   
+      // To check the nodes are the same as the introduced ones
+         printf("\nThe start node is: id %lu with lat %.4f and long %.4f;\n", nodes[start_index].id, nodes[start_index].lat, nodes[start_index].lon);
+         printf("and the goal node is: id %lu with lat %.4f and long %.4f.\n", nodes[goal_index].id, nodes[goal_index].lat, nodes[goal_index].lon);
+    
+     // Initialize the status
+        AStarStatus *status = NULL;
+        status = (AStarStatus *) malloc(sizeof(AStarStatus)*n_nodes);
+        
+        status[start_index].g = 0;
+        status[start_index].h = haversine(node_start, node_goal, nodes, n_nodes);
+        status[start_index].whq = 1; //OPEN
+   
+   
+        printf("Dijkstra distance from the start node is %.4f and the heuristic distance is %.4f km", status[start_index].g, status[start_index].h);
+        
+        // Initialize OPEN list
+        open_node *OPEN_LIST = NULL;
+    
+        insert_info (&OPEN_LIST, status[start_index].h, start_index); //g=0; f=g+h; f=h
+        
+        AStar_alg (start_index, goal_index, nodes, n_nodes, status, OPEN_LIST);
+        
+        
         // Check if the choosen nodes are in the dataset (FALTA)!!!!
         if(scanf("%lu", &node_start) != 1) ExitError("when reading the starting node", 19);
         while ( binSearchNode(node_start, nodes, n_nodes) = -1) {
            printf("Could not find the "%lu" node");     
-        */
+        
         
         
         
         free(nodes);
         free(allsuccessors);
+        */
 }
 
 
