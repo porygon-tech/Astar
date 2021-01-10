@@ -22,6 +22,6 @@ These files will be the input of the `csvreader.c` script as is shown below:
 ```
 gcc csvreader.c -o csvread -O3 -lm && ./csvread preprocessing/parsedfiles/nodes_clean.csv preprocessing/parsedfiles/ways_clean.csv bin_out.bin
 ```
-The `bin_out.bin` file is a binary file containing the graph information such that it is much quicker to read. Hence, the original file only needs to be read once.
+The `bin_out.bin` file is a binary file containing the graph information such that it is much quicker to read for the `pathfinder.c`. Hence, the original file only needs to be read once.
 ### Queries
 
