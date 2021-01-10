@@ -246,7 +246,7 @@ void AStar_alg (unsigned long node_start, unsigned long node_goal, nodetype *nod
     neigh = current_index;
     path = (unsigned long *) malloc(n_nodes*sizeof(unsigned long));
     path[0] = neigh;
-    unsigned long nn = 0;
+    int nn = 0;
     while(neigh != start_index){
        nn++;
        neigh = status[neigh].parent;
@@ -256,6 +256,7 @@ void AStar_alg (unsigned long node_start, unsigned long node_goal, nodetype *nod
     unsigned long length_path = nn+1;
     
     printf("The found path has %ld nodes (including the start and goal node).\n", length_path);
+    printf("The distance is: %.4f.\n", status[path[0]].g);
     
     FILE *res = fopen("final_path.csv", "w");
     fprintf(res, "Node id | Latitud | Longitud\n");
