@@ -8,13 +8,14 @@
 
 
 //DEBUGGING:  gcc csvreader.c -o csvread -lm -fsanitize=address -static-libasan -g -Wall && time ./csvread preprocessing/parsedfiles/nodes_clean.csv preprocessing/parsedfiles/ways_clean.csv bin_out.bin
+//gcc csvreader.c -o csvread -lm -fsanitize=address -static-libasan -g -Wall && time ./csvread preprocessing/parsedfiles/spain_nodes_clean.csv preprocessing/parsedfiles/spain_ways_clean.csv bin_out.bin
 //gcc csvreader.c -o csvread -O3 -lm && ./csvread preprocessing/parsedfiles/nodes_clean.csv preprocessing/parsedfiles/ways_clean.csv bin_out.bin
 
 int main(int argc, char *argv[]){
-	unsigned long n_nodes = 3472620UL; //change: cataluna 3472620; spain 23895681
+	unsigned long n_nodes = 23895681UL; //change: cataluna 3472620UL; spain 23895681UL
 	unsigned long waynode_id, A_id, B_id;
 	bool oneway;
-	int len_way;
+	unsigned short len_way;
 
 	ssize_t line_chars = 79857;
 	size_t line_bytes  = line_chars;
@@ -102,6 +103,14 @@ int main(int argc, char *argv[]){
 
 
 
+// INIT NODE LIST VARS
+	for (int i = 0; i < n_nodes; ++i){
+		nodes[i].nsucc = 0;
+		nodes[i].successors = (unsigned long *) malloc(sizeof(unsigned long) * 16);
+	}
+
+
+
 //====== LOAD WAYS ==============================================================
 
 	fp = fopen(filename_ways, "r");
@@ -125,28 +134,35 @@ int main(int argc, char *argv[]){
 		field = strsep(&linec, "|");
 			if (strlen(field)) {oneway = true;} else {oneway = false;}
 
+		len_way = 0;
 		while( (field = strsep(&linec, "|")) != NULL) {
 			waynode_id = strtoul(field, NULL, 10);
-			len_way = 0;
+			
 			if (binSearchNode(waynode_id, nodes, n_nodes) != ULONG_MAX) {
 					way_nodes[len_way] = waynode_id;
 					len_way++;
+
 			}
+			
 		}
+		//printf("line[%06d]: %d\n", lc, len_way);
 
 		if (len_way > 1) {
+
 			for (int i = 0; i < len_way - 1; ++i) {
 				A_id = binSearchNode(way_nodes[i],   nodes, n_nodes);	// current node's index in nodelist
 				B_id = binSearchNode(way_nodes[i+1], nodes, n_nodes);	//    next node's index in nodelist
-
-
+				//printf("%d, %d, %d\n", A_id, nodes[A_id].nsucc, B_id);
+					
 					nodes[A_id].successors[nodes[A_id].nsucc] = B_id;
 					nodes[A_id].nsucc++;
 
-				if (!oneway) {
 
+				if (!oneway) {
+					
 					nodes[B_id].successors[nodes[B_id].nsucc] = A_id;
 					nodes[B_id].nsucc++;
+
 				}
 			}
 		}	
@@ -156,9 +172,24 @@ int main(int argc, char *argv[]){
 		}
 
 	}
+
 	fclose(fp);
 	printf("loaded %d ways.\n\n", lc);
-	
+
+/*
+unsigned long nsucc_sum = 0;
+
+	for (int i = 0; i < n_nodes; ++i){
+		//printf("%d: %d\n", i, nodes[i].nsucc);
+		nsucc_sum = nsucc_sum + nodes[i].nsucc;
+	}
+printf("\naverage nsucc = %lu/%lu\n", nsucc_sum, n_nodes);
+*/
+
+
+
+
+
 /* HAVERSINE WORKING EXAMPLE
 double d = haversine(240949599, 30558454, nodes, n_nodes);
 	printf("dist: %.1f km (%.1f mi.)\n", d, d / 1.609344);
@@ -195,6 +226,11 @@ double d = haversine(240949599, 30558454, nodes, n_nodes);
 	}
 	fclose(fin);
 	printf("Done\n");
+
+	for (int i = 0; i < n_nodes; ++i){
+		free(nodes[i].name);
+		free(nodes[i].successors);
+	}
 
 	free(line_buff);
 	free(field);
