@@ -30,5 +30,5 @@ gcc pathfinder.c -o pathfind -Ofast -lm && ./pathfind bin_out_spain.bin
 ```
 after running it, the command line asks the user to enter a start node ID and a goal node ID. Then, prints the haversine distance (the heuristic algorithm used in our implementation) between both nodes and starts expanding successors. When the goal node is reached, the resulting path is outputted into a csv file.
 ### Results
-The A* algorithm takes approximately 100s. The optimal path between Santa Maria del Mar and the Giralda has 2665 nodes. 
+The optimal path between Santa Maria del Mar and the Giralda has 2665 nodes and the distance is 897623.2919 meters.
 
