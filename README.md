@@ -24,4 +24,9 @@ gcc csvreader.c -o csvread -O3 -lm && ./csvread preprocessing/parsedfiles/nodes_
 ```
 The `bin_out.bin` file is a binary file containing the graph information such that it is much quicker to read for the `pathfinder.c`. Hence, the original file only needs to be read once.
 ### Queries
+The pathfinder is compiled and executed as follows:
+```
+gcc pathfinder.c -o pathfind -Ofast -lm && ./pathfind bin_out_spain.bin
+```
+after running it, the command line asks the user to enter a start node ID and a goal node ID. Then, prints the haversine distance (the heuristic algorithm used in our implementation) between both nodes and starts expanding successors. When the goal node is reached, the resulting path is outputted into a csv file.
 
