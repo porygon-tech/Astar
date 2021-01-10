@@ -99,12 +99,12 @@ void insert_info (open_node **n, double f, unsigned long index){
 
 unsigned long min_index (open_node *n){
    open_node *ACTUAL = n;
-   if(ACTUAL == NULL) return ULONG_MAX;
+   if (ACTUAL == NULL) return ULONG_MAX;
    open_node *MINI = NULL;
    double num_min = 999999999999;
    
-   while(ACTUAL != NULL) {
-      if(ACTUAL -> f < num_min) {
+   while (ACTUAL != NULL) {
+      if (ACTUAL -> f < num_min) {
          MINI = ACTUAL;
          num_min = ACTUAL -> f;
       }
@@ -114,38 +114,36 @@ unsigned long min_index (open_node *n){
    return MINI -> index;
 }
 
-
-// iter index
-int iter_by_index (open_node **n, unsigned long index) {
-   open_node *ACTUAL = *n;
-   if (ACTUAL == NULL) return -1;
-   
-   open_node *TEMPORARY = NULL;
-   if (index == ACTUAL -> index){
-      open_node *COPY = NULL;
-         
-      COPY = (*n) -> next;
-      free(*n); 
-      *n = COPY;
-      return 1;
-   }
-      
-   while (ACTUAL -> next -> index != index) {
-      ACTUAL = ACTUAL -> next;
-      if (ACTUAL == NULL) return -1;
-   }
-   
-   TEMPORARY = ACTUAL -> next;
-   ACTUAL -> next = TEMPORARY -> next;
-   free(TEMPORARY);
-   return 1;
+int iter_by_index (open_node **n, unsigned long index){
+    open_node *ACTUAL = *n;
+    if(ACTUAL == NULL) return -1;
+    
+    open_node *TEMPORARY = NULL;
+    if (index == ACTUAL -> index){
+       open_node *COPY = NULL;
+       
+       COPY = (*n) -> next;
+       free(*n);
+       *n = COPY;
+       return 1;
+    }
+    
+    while (ACTUAL -> next -> index != index) {
+          ACTUAL = ACTUAL -> next;
+          if (ACTUAL == NULL) return -1;      
+    }
+    
+    TEMPORARY = ACTUAL -> next;
+    ACTUAL -> next = TEMPORARY -> next;
+    free(TEMPORARY);
+    return 1;
 }
+
 
 //====== AStar function ==============================================================
 
 void AStar_alg (unsigned long node_start, unsigned long node_goal, nodetype *nodes, unsigned long n_nodes)
 {
-   
    
    // Search the index of the nodes
     unsigned long start_index = binSearchNode(node_start, nodes, n_nodes);
@@ -167,91 +165,99 @@ void AStar_alg (unsigned long node_start, unsigned long node_goal, nodetype *nod
     status[start_index].g = 0;
     status[start_index].h = haversine(node_start, node_goal, nodes, n_nodes);
     status[start_index].whq = 1; //OPEN
-   
-    printf("Dijkstra distance from the start node is %.4f and the heuristic distance is %.4f km.\n", status[start_index].g, status[start_index].h); // to check
+    
+   // Check status
+    printf("Dijkstra distance from the start node is %.4f and the heuristic distance is %.4f km.\n",
+            status[start_index].g, status[start_index].h);
    
    // Initialize OPEN list
     open_node *OPEN_LIST = NULL;
-    insert_info(&OPEN_LIST, status[start_index].g + status[start_index].h, start_index); //g=0; g+h=h
-  
-   // Vars to the AStar
+    insert_info(&OPEN_LIST, (status[start_index].g + status[start_index].h), start_index); //g=0; g+h=h
+    
+    // printf("OPEN LIST: (%ld) index, (%f) f, (%ld) next\n.", OPEN_LIST -> index, OPEN_LIST -> f, OPEN_LIST -> next);
+   
+   // Vars   
     unsigned long current_index;   // node_current index
     double successor_current_cost; // cost of the successors
-    int count_exp = 0; //counter to know the number of nodes expanded
+    int count_expanded = 0;
     double w;
-    int i;
     
+
     while ((current_index = min_index(OPEN_LIST)) != ULONG_MAX) {
-     // current_index = OPEN_LIST -> index;
-      count_exp += 1;
-      printf("Number of expanded nodes: %d.\n", count_exp); // to check
-      printf("Current index: %ld.\n", current_index);       // to check
       
-     //  If node is the goal node break;
-      if (current_index == goal_index) break;
+      count_expanded += 1;
+      // printf("Current index: %ld.\nAnd number of expanded nodes: %d.\n", current_index, count_expanded);
       
-     // Generate each state of the successors that come after the current node
-      for (i = 0; i < nodes[current_index].nsucc; i++){
+      if (current_index == goal_index) {
+         printf("The goal node has been found.\n");
+         break;
+      }
       
-        // Set the cost of the current successor 
-         unsigned long successor_index = nodes[current_index].successors[i];
-         w = haversine(nodes[current_index].id, nodes[goal_index].id, nodes, n_nodes);
-         successor_current_cost = status[current_index].g + w;
-         
-        // If node successor is OPEN
-         if (status[successor_index].whq == 1){
+      int i;
+      for (i=0; i < nodes[current_index].nsucc; i++){
+      
+          unsigned long successor_index = nodes[current_index].successors[i];
+          w = haversine(nodes[current_index].id, nodes[goal_index].id, nodes, n_nodes);
+          successor_current_cost = status[current_index].g + w;
+          
+          if (status[successor_index].whq == 1){
+          
              if (status[successor_index].g <= successor_current_cost) continue;
              
-        // If node successor is CLOSED
-         } else if (status[successor_index].whq == 2 ){
-         
-               // And is equal or lower than the successor current cos continue
-                if (status[successor_index].g <= successor_current_cost) continue;
-                
-               // If not (if is greather) move node_successor from CLOSED lo OPEN
-                status[successor_index].whq = 1;
-                insert_info(&OPEN_LIST, (successor_current_cost+status[successor_index].h), successor_index);
-      
-         } else {
-            status[successor_index].h = haversine(nodes[successor_index].id, nodes[goal_index].id, nodes, n_nodes);
-            status[successor_index].whq = 1;
-            insert_info(&OPEN_LIST, (successor_current_cost + status[successor_index].h), successor_index);           
-         }
-         
-         status[successor_index].g = successor_current_cost;
-         status[successor_index].parent = current_index;
+          } else if (status[successor_index].whq == 2){
+
+             if (status[successor_index].g <= successor_current_cost) continue;
+             
+             status[successor_index].whq = 1;
+             insert_info (&OPEN_LIST, (successor_current_cost + status[successor_index].h), successor_index);
+       
+          } else {
+             status[successor_index].h = haversine(nodes[successor_index].id, nodes[goal_index].id, nodes, n_nodes);
+             status[successor_index].whq = 1;
+             insert_info (&OPEN_LIST, (successor_current_cost + status[successor_index].h), successor_index);
+             
+          }
+          
+          status[successor_index].g = successor_current_cost;
+          status[successor_index].parent = current_index;
       }
       
       status[current_index].whq = 2;
- 
-    // iter_by_index
-    //  if ((iter_by_index(&OPEN_LIST, current_index)) != 1) printf("Delete fail.\n");
-     
+      
+     // iter_by_index
+     if ((iter_by_index(&OPEN_LIST, current_index)) != 1) printf("Delete failed.\n");      
+
     }
     
-    if (current_index != goal_index) ExitError("OPEN list is empty", 24);
+    if (current_index != goal_index) printf("OPEN list is empty.\n");
     
-    // And we write
+    // Write the path
+    
     unsigned long *path;
     unsigned long neigh;
     
     neigh = current_index;
     path = (unsigned long *) malloc(n_nodes*sizeof(unsigned long));
     path[0] = neigh;
-    
-    int nn;
-    while (neigh != start_index){
+    unsigned long nn = 0;
+    while(neigh != start_index){
        nn++;
        neigh = status[neigh].parent;
        path[nn] = neigh;
     }
     
-    int length_path = nn+1;
+    unsigned long length_path = nn+1;
     
     printf("Node id | Latitud | Longitud\n");
+    int i;
+    for (i = length_path; i >= 0 ; i--){
+       printf("%lu | %.4f | %.4f \n",
+              nodes[path[i]].id, nodes[path[i]].lat, nodes[path[i]].lon);
+    }
     
-    for (int i=0; i<=length_path; i++) printf("%lu | %.4f | %.4f \n", nodes[path[i]].id, nodes[path[i]].lat, nodes[path[i]].lon);
- 
+    //free(path); 
+    //free(status); 
+    
     
 } 
 
