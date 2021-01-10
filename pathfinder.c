@@ -54,10 +54,10 @@ int main (int argc, char* argv[]){
         printf("Enter the ID of the starting node (ex. Santa Maria del Mar: 240949599): ");
         if(scanf("%lu", &node_start) != 1) ExitError("Invalid start node", 19);
         
-        printf("Enter the ID of the goal node (ex. Giralda: 195977239, cat: 30558454): ");
+        printf("Enter the ID of the goal node (ex. Giralda: 195977239): ");
         if(scanf("%lu", &node_goal) != 1) ExitError("Invalid goal node", 20);
         
-        AStar_alg (240949599, 195977239, nodes, n_nodes);
+        AStar_alg (node_start, node_goal, nodes, n_nodes);
         
         free(nodes);
         free(allsuccessors);

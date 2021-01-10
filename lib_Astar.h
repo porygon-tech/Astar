@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <limits.h>
+#include <time.h>
 
 const int R = 6371;
 const float DEG_TO_RAD = (3.1415926536 / 180);
@@ -182,7 +183,10 @@ void AStar_alg (unsigned long node_start, unsigned long node_goal, nodetype *nod
     int count_expanded = 0;
     double w;
     
-
+   // Start loop timer;
+    clock_t start, end;
+    start = clock();
+    
     while ((current_index = min_index(OPEN_LIST)) != ULONG_MAX) {
       
       count_expanded += 1;
@@ -228,6 +232,9 @@ void AStar_alg (unsigned long node_start, unsigned long node_goal, nodetype *nod
      if ((iter_by_index(&OPEN_LIST, current_index)) != 1) printf("Delete failed.\n");      
 
     }
+    // Finish loop timer
+    end = clock();
+    printf("A* has taken %.4fs.\n", ((double) (end-start))/CLOCKS_PER_SEC);
     
     if (current_index != goal_index) printf("OPEN list is empty.\n");
     
@@ -248,17 +255,20 @@ void AStar_alg (unsigned long node_start, unsigned long node_goal, nodetype *nod
     
     unsigned long length_path = nn+1;
     
-    printf("Node id | Latitud | Longitud\n");
+    printf("The found path has %ld nodes (including the start and goal node).\n", length_path);
+    
+    FILE *res = fopen("final_path.csv", "w");
+    fprintf(res, "Node id | Latitud | Longitud\n");
     int i;
-    for (i = length_path; i >= 0 ; i--){
-       printf("%lu | %.4f | %.4f \n",
-              nodes[path[i]].id, nodes[path[i]].lat, nodes[path[i]].lon);
+    for (i=length_path-1; i >= 0 ; i--){
+       fprintf(res, "%lu | %.4f | %.4f \n",
+               nodes[path[i]].id, nodes[path[i]].lat, nodes[path[i]].lon);
     }
+    fclose(res);
     
-    //free(path); 
-    //free(status); 
-    
-    
+    free(path); 
+    free(status); 
+ 
 } 
 
 
