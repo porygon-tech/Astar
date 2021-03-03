@@ -1,5 +1,5 @@
 # Astar
-A* algorithm implementation on the Spain road network.
+A* algorithm implementation on the spanish road network for the Optimisation subject at the official master in modelling for science and engineering at the autonomous university of Barcelona (UAB).
 ## Manual
 ### Preprocessing
 First of all, the csv file is preprocessed to get just the needed information, so the `csvreader.c` deals with a much lower amount of information. The preprocessing must be performed from inside the `preprocessing/` folder as follows:
